@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dishify — AI-генератор и конструктор меню</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+</head>
+<body>
+  <!-- Top Navigation -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-logo">Dishify</span>
+        <span class="brand-badge">AI Menu Studio</span>
+      </div>
+      <div class="topbar-actions">
+        <button id="openApiModalBtn" class="btn-ghost" type="button" title="Подключить бесплатный Gemini API">
+          <span id="apiStatusDot" class="status-dot"></span>
+          <span id="apiStatusText">ИИ: Встроенный движок</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="workspace">
+    <!-- Left Column: Controls -->
+    <section class="controls-panel">
+      <!-- Step 1: Venue Name -->
+      <div class="card">
+        <div class="card-header">
+          <span class="step-num">01</span>
+          <h2>Заведение</h2>
+        </div>
+        <input id="venueNameInput" type="text" class="text-input" value="LA SCALA & BISTRO" placeholder="Название ресторана или кафе" />
+        <input id="venueSubtitleInput" type="text" class="text-input mt-8" value="Итальянская и авторская кухня" placeholder="Подзаголовок или кухня (необязательно)" />
+      </div>
+
+      <!-- Step 2: Input Source -->
+      <div class="card">
+        <div class="card-header">
+          <span class="step-num">02</span>
+          <h2>Создание меню</h2>
+        </div>
+
+        <div class="tabs tabs-4" role="tablist">
+          <button class="tab-btn active" data-tab="prompt" type="button">✨ AI Промпт</button>
+          <button class="tab-btn" data-tab="builder" type="button">🧩 Конструктор</button>
+          <button class="tab-btn" data-tab="text" type="button">📝 Текстом</button>
+          <button class="tab-btn" data-tab="photo" type="button">📸 Фото</button>
+        </div>
+
+        <!-- Tab 1: AI Prompt (like Gemini) -->
+        <div id="tab-prompt" class="tab-content active">
+          <p class="hint">Опишите заведение и пожелания — ИИ соберёт меню по разделам (салаты, закуски, горячее, напитки) с картинками:</p>
+          <textarea id="aiPromptInput" class="textarea-input mt-8" rows="4" placeholder="Например: Сделай меню для уютного итальянского ресторана с пиццей, пастой, салатами, хрустящим хлебом, картошкой фри и лимонадами"></textarea>
+          <div class="prompt-chips mt-8">
+            <button class="chip-btn" type="button" data-prompt="Итальянская траттория: салаты с бурратой, брускетты и хлеб, картофель фри, пицца Маргарита и Пепперони, паста Карбонара, тирамису и лимонад">🇮🇹 Итальянская траттория</button>
+            <button class="chip-btn" type="button" data-prompt="Городское бистро в Алматы: салаты, сырные палочки и картошка фри, борщ и том ям, бешбармак, плов, хачапури и айс-латте">🍽️ Микс кухонь Алматы</button>
+            <button class="chip-btn" type="button" data-prompt="Стритфуд и бургер-кафе: картошка фри, батат фри, донеры, чебуреки, хошаны, острые крылышки и холодные лимонады">🍟 Стритфуд и закуски</button>
+            <button class="chip-btn" type="button" data-prompt="Азия и Корея: морковча, хе из судака, кукси, том ям, рамен, роллы Филадельфия, вок удон и матча-латте">🥢 Паназия и Корея</button>
+          </div>
+        </div>
+
+        <!-- Tab 2: Interactive Builder -->
+        <div id="tab-builder" class="tab-content">
+          <div class="cuisine-pills" id="cuisineFilters">
+            <button class="pill active" data-cuisine="all" type="button">Все</button>
+            <button class="pill" data-cuisine="italian" type="button">🇮🇹 Итальянская</button>
+            <button class="pill" data-cuisine="snacks" type="button">🍟 Закуски и хлеб</button>
+            <button class="pill" data-cuisine="kazakh" type="button">🇰🇿 Казахская</button>
+            <button class="pill" data-cuisine="uyghur" type="button">🥟 Уйгурская</button>
+            <button class="pill" data-cuisine="uzbek" type="button">🇺🇿 Узбекская</button>
+            <button class="pill" data-cuisine="dungan" type="button">🌶️ Дунганская</button>
+            <button class="pill" data-cuisine="korean" type="button">🥢 Корейская</button>
+            <button class="pill" data-cuisine="caucasian" type="button">🍢 Кавказская</button>
+            <button class="pill" data-cuisine="turkish" type="button">🥙 Турецкая</button>
+            <button class="pill" data-cuisine="european" type="button">🍝 Европейская</button>
+            <button class="pill" data-cuisine="asian" type="button">🍣 Паназия</button>
+            <button class="pill" data-cuisine="street" type="button">🌯 Стритфуд</button>
+            <button class="pill" data-cuisine="drinks" type="button">🥤 Напитки</button>
+          </div>
+
+          <div class="builder-toolbar">
+            <button id="selectPresetBtn" class="btn-link" type="button">Выбрать микс</button>
+            <button id="clearSelectionBtn" class="btn-link muted" type="button">Сбросить</button>
+          </div>
+
+          <div id="builderList" class="builder-list"></div>
+
+          <!-- Quick Add Custom Dish -->
+          <div class="custom-add-box">
+            <input id="customDishName" type="text" class="text-input" placeholder="Свое блюдо..." />
+            <input id="customDishPrice" type="number" class="text-input price-input" placeholder="Цена ₸" />
+            <select id="customDishCourse" class="text-input cat-select" title="Раздел меню">
+              <option value="salads">Салаты</option>
+              <option value="snacks">Закуски/Хлеб</option>
+              <option value="soups">Супы</option>
+              <option value="mains" selected>Горячее</option>
+              <option value="bakery">Пицца/Выпечка</option>
+              <option value="drinks">Напитки/Десерт</option>
+            </select>
+            <button id="addCustomDishBtn" class="btn-secondary" type="button">+</button>
+          </div>
+          <div class="selected-counter">
+            Выбрано позиций: <strong id="selectedCount">0</strong>
+          </div>
+        </div>
+
+        <!-- Tab 3: Raw Text -->
+        <div id="tab-text" class="tab-content">
+          <p class="hint">Вставьте список блюд с ценами (каждое с новой строки):</p>
+          <textarea id="rawTextInput" class="textarea-input" rows="7" placeholder="Салат с бурратой - 3200&#10;Картофель фри с сырным соусом - 1200&#10;Хлебная корзина с чесночным маслом - 1100&#10;Пицца Маргарита - 3400&#10;Паста Карбонара - 3600"></textarea>
+          <button id="fillSampleTextBtn" class="btn-link mt-8" type="button">Вставить готовый пример</button>
+        </div>
+
+        <!-- Tab 4: Photo Upload -->
+        <div id="tab-photo" class="tab-content">
+          <label class="upload-zone" for="photoInput">
+            <input id="photoInput" type="file" accept="image/*" hidden />
+            <div id="uploadPlaceholder">
+              <div class="upload-icon">📷</div>
+              <div class="upload-title">Нажмите или перетащите фото меню</div>
+              <div class="upload-sub">JPG, PNG, WEBP — распознаем блюда и цены</div>
+            </div>
+            <img id="photoPreview" class="photo-preview hidden" alt="Предпросмотр загруженного меню" />
+          </label>
+          <p class="hint mt-8">
+            С подключенным Gemini API распознаются любые фото меню; без ключа работает демо-режим.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 3: Grouping & Languages -->
+      <div class="card">
+        <div class="card-header">
+          <span class="step-num">03</span>
+          <h2>Структура и языки</h2>
+        </div>
+
+        <div class="group-switch" id="groupingSwitch">
+          <button class="seg-btn active" data-group="course" type="button">По разделам (Салаты, Закуски, Горячее...)</button>
+          <button class="seg-btn" data-group="cuisine" type="button">По кухням</button>
+        </div>
+
+        <div class="lang-grid mt-12">
+          <label class="check-pill">
+            <input type="checkbox" name="lang" value="ru" checked />
+            <span>🇷🇺 Русский</span>
+          </label>
+          <label class="check-pill">
+            <input type="checkbox" name="lang" value="kz" checked />
+            <span>🇰🇿 Қазақша</span>
+          </label>
+          <label class="check-pill">
+            <input type="checkbox" name="lang" value="en" />
+            <span>🇬🇧 English</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Step 4: 10 Visual Styles & Layout -->
+      <div class="card">
+        <div class="card-header">
+          <span class="step-num">04</span>
+          <h2>Стиль и оформление (10 тем)</h2>
+        </div>
+
+        <div class="layout-switch mb-10" id="layoutSwitch">
+          <button class="seg-btn active" data-layout="auto" type="button">Авто-макет</button>
+          <button class="seg-btn" data-layout="1col" type="button">1 колонка</button>
+          <button class="seg-btn" data-layout="2col" type="button">2 колонки</button>
+        </div>
+
+        <div class="style-grid" id="styleGrid">
+          <button class="style-card active" data-style="emerald-split" type="button">
+            <span class="swatch swatch-emerald"></span>
+            <span class="style-name">Изумруд и Золото</span>
+            <span class="style-desc">2 колонки с боковой панелью</span>
+          </button>
+          <button class="style-card" data-style="minimal" type="button">
+            <span class="swatch swatch-minimal"></span>
+            <span class="style-name">Минимализм</span>
+            <span class="style-desc">Чистый лист и воздух</span>
+          </button>
+          <button class="style-card" data-style="craft" type="button">
+            <span class="swatch swatch-craft"></span>
+            <span class="style-name">Крафт и Лофт</span>
+            <span class="style-desc">Тёплый беж и терракота</span>
+          </button>
+          <button class="style-card" data-style="neobistro" type="button">
+            <span class="swatch swatch-neobistro"></span>
+            <span class="style-name">Нео-бистро</span>
+            <span class="style-desc">Королевский синий и крем</span>
+          </button>
+          <button class="style-card" data-style="luxury" type="button">
+            <span class="swatch swatch-luxury"></span>
+            <span class="style-name">Fine Dining</span>
+            <span class="style-desc">Тёмный графит и золото</span>
+          </button>
+          <button class="style-card" data-style="swiss" type="button">
+            <span class="swatch swatch-swiss"></span>
+            <span class="style-name">Швейцарский</span>
+            <span class="style-desc">Журнальная сетка и алый</span>
+          </button>
+          <button class="style-card" data-style="samarkand" type="button">
+            <span class="swatch swatch-samarkand"></span>
+            <span class="style-name">Самарканд</span>
+            <span class="style-desc">Восточная бирюза и золото</span>
+          </button>
+          <button class="style-card" data-style="tokyo" type="button">
+            <span class="swatch swatch-tokyo"></span>
+            <span class="style-name">Токио Дзен</span>
+            <span class="style-desc">Рисовая бумага и печать</span>
+          </button>
+          <button class="style-card" data-style="olive" type="button">
+            <span class="swatch swatch-olive"></span>
+            <span class="style-name">Олива и Шалфей</span>
+            <span class="style-desc">Мягкий эко-стиль</span>
+          </button>
+          <button class="style-card" data-style="vintage" type="button">
+            <span class="swatch swatch-vintage"></span>
+            <span class="style-name">Траттория</span>
+            <span class="style-desc">Пергамент, бордо и отточия</span>
+          </button>
+        </div>
+
+        <label class="toggle-row mt-12">
+          <input id="showImagesToggle" type="checkbox" checked />
+          <span>🖼️ Показывать фотографии блюд в меню</span>
+        </label>
+        <label class="toggle-row mt-8">
+          <input id="showDetailsToggle" type="checkbox" checked />
+          <span>Показывать описания блюд и КБЖУ</span>
+        </label>
+      </div>
+
+      <!-- Generate Button -->
+      <button id="generateBtn" class="btn-primary" type="button">
+        ✨ Сгенерировать меню с ИИ
+      </button>
+    </section>
+
+    <!-- Right Column: Live Menu Preview & Export -->
+    <section class="preview-panel">
+      <div class="preview-toolbar">
+        <div class="preview-status" id="previewStatus">Готово • Формат A4</div>
+        <div class="export-actions">
+          <button id="downloadPngBtn" class="btn-secondary" type="button">🖼️ Скачать PNG</button>
+          <button id="downloadPdfBtn" class="btn-download" type="button">📄 Скачать PDF</button>
+        </div>
+      </div>
+
+      <div class="preview-stage">
+        <article id="menuSheet" class="menu-sheet theme-emerald-split">
+          <div class="menu-inner" id="menuContent"></div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <!-- Optional Gemini API Key Modal -->
+  <div id="apiModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Подключить Google Gemini API</h3>
+        <button id="closeApiModalBtn" class="btn-close" type="button">✕</button>
+      </div>
+      <p class="modal-text">
+        Сайт работает автономно без ключа. Чтобы <strong>реальная нейросеть Gemini</strong> генерировала меню по любому промпту, переводила блюда и распознавала фото — вставьте бесплатный ключ из <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>.
+      </p>
+      <p class="modal-text note-safe">
+        🔒 Ключ сохраняется только локально в вашем браузере (<code>localStorage</code>) и никуда не передаётся.
+      </p>
+      <input id="apiKeyInput" type="password" class="text-input" placeholder="AIzaSy..." />
+      <div class="modal-actions">
+        <button id="clearApiKeyBtn" class="btn-ghost" type="button">Отключить</button>
+        <button id="saveApiKeyBtn" class="btn-download" type="button">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
